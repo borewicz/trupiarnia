@@ -93,6 +93,8 @@ int main(int argc, char **argv)
         U[rank] = 1;
         T[trup_id] = 1;
 
+        int status = 0;
+
         do
         {
             int response[4];
@@ -102,7 +104,8 @@ int main(int argc, char **argv)
 
             if ((response[2] == trup_id) && (response[0] < rank))
             {
-                continue;
+                status = 1;
+                break;
             }
             else if (response[1] == BURIED)
             {
@@ -120,6 +123,9 @@ int main(int argc, char **argv)
             }
         }
         while (!readyU(U,size));
+
+        if (status)
+            continue;
 
         C++;
         int request[4] = {
