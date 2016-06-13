@@ -23,6 +23,7 @@ void sendAllInU(int *data, int size, int *U, int sender, int lamport)
     for (i = 0; i < size; i++)
         if ((U[i] == FREE || U[i] == PROCESSED)&& i != sender)
         {
+            data[3] = lamport;
             MPI_Isend( data, MSG_LENGTH, MPI_INT, i, TAG, MPI_COMM_WORLD, &req);
             lamport++;
         }
@@ -35,6 +36,7 @@ void broadcast(int *data, int size, int sender, int lamport)
     for (i = 0; i < size; i++)
         if (i!= sender)
         {
+            data[3] = lamport;
             MPI_Isend( data, MSG_LENGTH, MPI_INT, i, TAG, MPI_COMM_WORLD, &req);
             lamport++;
         }
@@ -84,6 +86,7 @@ int main(int argc, char **argv)
     while(!ready(T, 100))
     {
         int trup_id = rand() % 100; 
+        printf("rank %d: chce %d", rank, trup_id);
         int message[MSG_LENGTH] = { rank, PROCESSED, trup_id, C };
         
         sendAllInU(message, size, U, rank, C);
