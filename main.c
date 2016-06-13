@@ -18,6 +18,14 @@ void broadcast(int *data, int size)
         MPI_Send( data, 3, MPI_INT, i, i, MPI_COMM_WORLD);
 }
 
+void sendAllInU(int *data, int size)
+{
+    int i = 0;
+    for (i = 0; i < size; i++)
+        if (data[i] == FREE || data[i] == BUSY)
+            MPI_Send( data, 3, MPI_INT, i, i, MPI_COMM_WORLD);
+}
+
 bool ready(int *table, int size)
 {
     int i = 0;
@@ -45,11 +53,11 @@ int main(int argc, char **argv)
         U[i] = 0;
     srand(time(NULL));
 
-    while(1)
+    while(!ready(T, 100))
     {
         int trup_id = rand() % 100; 
-        int message[3] = { rank, 1, trup_id };
-        broadcast(message, size);
+        int message[3] = { rank, BUSY, trup_id };
+        sendAllInU(message, size);
         U[rank] = 1;
         T[trup_id] = 1;
 
@@ -78,8 +86,14 @@ int main(int argc, char **argv)
                 U[response[0]] = 1;
             }
         }
-        while (!ready(U,100));
+        while (!ready(U,size));
+
+
+        int message2[3] = { rank, BURRIED, trup_id };
+        broadcast(message2, size);
         sleep(2);
+
+        
     }
     MPI_Finalize();
 }
