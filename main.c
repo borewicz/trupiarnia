@@ -5,8 +5,6 @@
 
 #define BACK 3
 
-typedef enum {false, true} bool;
-
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
 // do tablicy T
@@ -14,18 +12,8 @@ typedef enum {false, true} bool;
 #define PROCESSED 1
 #define BURIED 2
 
-//do tablicy U
-#define WAITING 1
-#define PROCESS -1
-
 #define MSG_LENGTH 4
 
-void broadcast(int *data, int size)
-{
-    int i = 0;
-    for (i = 0; i < size; i++)
-        MPI_Send( data, MSG_LENGTH, MPI_INT, i, i, MPI_COMM_WORLD);
-}
 
 void sendAllInU(int *data, int size)
 {
@@ -35,7 +23,7 @@ void sendAllInU(int *data, int size)
             MPI_Send( data, MSG_LENGTH, MPI_INT, i, i, MPI_COMM_WORLD);
 }
 
-bool ready(int *table, int size)
+int ready(int *table, int size)
 {
     int i = 0;
     for (i; i < size; i++)
@@ -107,18 +95,18 @@ int main(int argc, char **argv)
         int request[4] = {
             rank, BURIED, trup_id, C
         };
-        broadcast(request, size); 
+        sendAllInU(request, size);
         sleep(2); 
+        int flag;
+        MPI_Request req;
+        MPI_Status stat;
+        int response[4];
         do
         {
-            int response[4];
-            MPI_Recv( &response, MSG_LENGTH, MPI_INT, MPI_ANY_SOURCE, rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            // tutaj użyć tablicy R żeby sprawdzić czy dostaliśmy od wszystkich
-            // i elo
-            break;
+            MPI_Irecv( &response, MSG_LENGTH, MPI_INT, MPI_ANY_SOURCE, rank, MPI_COMM_WORLD, &req);
+            MPI_Test(&req, &flag, &stat);
         }
-        while (1);
-
+        while (flag);
     }
     MPI_Finalize();
 }
