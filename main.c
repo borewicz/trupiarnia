@@ -16,22 +16,28 @@
 
 #define TAG 10
 
-void sendAllInU(int *data, int size, int *U, int sender)
+void sendAllInU(int *data, int size, int *U, int sender, int lamport)
 {
     int i = 0;
     int req;
     for (i = 0; i < size; i++)
         if ((U[i] == FREE || U[i] == PROCESSED)&& i != sender)
+        {
             MPI_Isend( data, MSG_LENGTH, MPI_INT, i, TAG, MPI_COMM_WORLD, &req);
+            lamport++;
+        }
 }
 
-void broadcast(int *data, int size, int sender)
+void broadcast(int *data, int size, int sender, int lamport)
 {
     int i = 0;
     int req;
     for (i = 0; i < size; i++)
         if (i!= sender)
+        {
             MPI_Isend( data, MSG_LENGTH, MPI_INT, i, TAG, MPI_COMM_WORLD, &req);
+            lamport++;
+        }
 }
 
 int ready(int *table, int size)
@@ -80,14 +86,13 @@ int main(int argc, char **argv)
         int trup_id = rand() % 100; 
         int message[MSG_LENGTH] = { rank, PROCESSED, trup_id, C };
         
-        sendAllInU(message, size, U, rank);
+        sendAllInU(message, size, U, rank, C);
         U[rank] = 1;
         T[trup_id] = 1;
 
         do
         {
             int response[4];
-            printf("123123");
             MPI_Recv( &response, MSG_LENGTH, MPI_INT, MPI_ANY_SOURCE, TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             C = MAX(C, response[3]);
             printf("rank %d: dostałem od %d, trup_id: %d, C=%d\n", rank, response[0], response[2], response[3]);
@@ -117,7 +122,7 @@ int main(int argc, char **argv)
         int request[4] = {
             rank, BURIED, trup_id, C
         };
-        broadcast(request, size, rank);
+        broadcast(request, size, rank, C);
         sleep(2); 
         int flag;
         MPI_Request req;
