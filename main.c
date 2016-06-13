@@ -3,21 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-state;
-
-//format: id_procesu, status, id_trupa
-enum State
-{
-    Free = 0, // wolny
-    Processed = 1, // będący obiektem pożądania grabarzy
-    Buried = 2 // pochowany
-} ;
-
-struct Message {
-    int process_id;
-    int status;
-    int id_trupa;
-};
 
 void broadcast(int *data, int size)
 {
@@ -46,15 +31,10 @@ int main(int argc, char **argv)
 
     while(1)
     {
-        int trup_id = rand() % 100; //tmp
-        //format: id_procesu, status, id_trupa
-//        int message[3] = { rank, State.Processed, trup_id };
+        int trup_id = rand() % 100; 
         int message[3] = { rank, 1, trup_id };
-        //wysyłamy wszystkim info, że chcemy podjąć trupa
         broadcast(message, size);
-        //zaznaczamy, że ubiegamy się o trupa
         U[rank] = 1;
-        //i wpisujemy jedynkę do trupa o którego prosime
         T[trup_id] = 1;
         int remained = size;
         do
@@ -66,9 +46,6 @@ int main(int argc, char **argv)
                 continue;
             else if (response[1] == 2)
                 U[response[0]] == 1;
-            //else if ()
-            //sekcja krytyczna?
-            //itd.
             remained--;
         }
         while (remained > 0);
